@@ -4,8 +4,8 @@ const utils = require('./lib/hashUtils');
 const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
-const Cookies = require('./middleware/cookieParser');
 const models = require('./models');
+const parseCookies = require('./middleware/cookieParser');
 
 const app = express();
 
@@ -16,6 +16,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
+
+app.use(parseCookies);
+
+app.use(Auth.createSession);
 
 app.get('/',
 (req, res) => {
@@ -85,7 +89,6 @@ app.post('/signup', (req, res) => {
   // Check if user is in db
   models.Users.get({username: req.body.username}).then(result => {
     // if user is not in db
-    console.log(result);
     if (!result) {
       // create user, redirect to index
       models.Users.create({username: req.body.username, password: req.body.password});
