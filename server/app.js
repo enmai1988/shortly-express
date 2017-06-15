@@ -23,12 +23,21 @@ app.use(Auth.createSession);
 
 app.get('/',
 (req, res) => {
-  res.render('index');
+  if (models.Sessions.isLoggedIn(req.session)) {
+    res.render('index');
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.get('/create',
 (req, res) => {
-  res.render('index');
+  console.log(models.Sessions.isLoggedIn(req.session));
+  if (models.Sessions.isLoggedIn(req.session)) {
+    res.render('index');
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.get('/links',
@@ -82,37 +91,61 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 
+// Handle login process
+app.post('/login', (req, res, next) => {
+  // retrieve user info from db
+  models.Users.get({username: req.body.username}).then(result => {
+    // if no result, redirect to login
+    if (!result) {
+      res.redirect('/login');
+    } else {
+      // else, authenticate the user
+      let authenticated = models.Users.compare(req.body.password, result.password, result.salt);
+      if (authenticated) {
+        req.session.user = result.username;
+        // Auth.verifySession(req, res, next);
+        res.redirect('/');
+      } else {
+        res.redirect('/login');
+      }
+      // authenticated ? res.redirect(200, '/') : res.redirect(401, '/login');
+    }
+  });
+});
 
 // Handle signup process
 // Change to router to control the traffic
-app.post('/signup', (req, res) => {
+app.get('/signup', (req, res, next) => {
+  res.render('signup');
+});
+
+app.post('/signup', (req, res, next) => {
   // Check if user is in db
   models.Users.get({username: req.body.username}).then(result => {
     // if user is not in db
     if (!result) {
       // create user, redirect to index
-      models.Users.create({username: req.body.username, password: req.body.password});
-      res.redirect(201, '/');
+      models.Users.create({username: req.body.username, password: req.body.password})
+      .then(result => res.redirect('/'));
+      // .then(result => {
+      //   models.Sessions.get(req.session.hash).then(session => {
+      //     session.update('userId', result.id).then(result => {
+      //       res.render('index');
+      //     });
+        // });
+      // });
+
     } else {
       // if user already exists, redirect to signup again
-      res.redirect(406, '/signup');
+      res.redirect('/signup');
     }
   });
 });
 
-
-// Handle login process
-app.post('/login', (req, res) => {
-  // retrieve user info from db
-  models.Users.get({username: req.body.username}).then(result => {
-    // if no result, redirect to login
-    if (!result) {
-      res.redirect(404, '/login');
-    } else {
-      // else, authenticate the user
-      let authenticated = models.Users.compare(req.body.password, result.password, result.salt);
-      authenticated ? res.redirect(200, '/') : res.redirect(401, '/login');
-    }
+app.get('/logout', (req, res, next) => {
+  models.Sessions.delete({hash: req.session.hash}).then(result => {
+    console.log('Logout and deleted session');
+    next();
   });
 });
 

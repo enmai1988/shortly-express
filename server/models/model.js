@@ -37,6 +37,7 @@ class Model {
   update(options, values) {
     let parsedOptions = parseData(options);
     let queryString = `UPDATE ${this.tablename} SET ? WHERE ${parsedOptions.string.join(' AND ')}`;
+    console.log(queryString);
     return executeQuery(queryString, Array.prototype.concat(values, parsedOptions.values));
   }
 
