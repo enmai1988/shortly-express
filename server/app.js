@@ -4,6 +4,7 @@ const utils = require('./lib/hashUtils');
 const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
+const Cookies = require('./middleware/cookieParser');
 const models = require('./models');
 
 const app = express();
@@ -16,18 +17,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 
-
-app.get('/', 
+app.get('/',
 (req, res) => {
   res.render('index');
 });
 
-app.get('/create', 
+app.get('/create',
 (req, res) => {
   res.render('index');
 });
 
-app.get('/links', 
+app.get('/links',
 (req, res, next) => {
   models.Links.getAll()
     .then(links => {
@@ -38,7 +38,7 @@ app.get('/links',
     });
 });
 
-app.post('/links', 
+app.post('/links',
 (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
@@ -79,6 +79,39 @@ app.post('/links',
 /************************************************************/
 
 
+// Handle signup process
+// Change to router to control the traffic
+app.post('/signup', (req, res) => {
+  // Check if user is in db
+  models.Users.get({username: req.body.username}).then(result => {
+    // if user is not in db
+    console.log(result);
+    if (!result) {
+      // create user, redirect to index
+      models.Users.create({username: req.body.username, password: req.body.password});
+      res.redirect(201, '/');
+    } else {
+      // if user already exists, redirect to signup again
+      res.redirect(406, '/signup');
+    }
+  });
+});
+
+
+// Handle login process
+app.post('/login', (req, res) => {
+  // retrieve user info from db
+  models.Users.get({username: req.body.username}).then(result => {
+    // if no result, redirect to login
+    if (!result) {
+      res.redirect(404, '/login');
+    } else {
+      // else, authenticate the user
+      let authenticated = models.Users.compare(req.body.password, result.password, result.salt);
+      authenticated ? res.redirect(200, '/') : res.redirect(401, '/login');
+    }
+  });
+});
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
