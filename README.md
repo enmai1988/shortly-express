@@ -8,9 +8,9 @@ So what do we need to consider? Think about authentication as a visit to a banki
 
 - When do we need to authenticate the client? For example, what transactions require authentication and what don't.
 - As the transaction becomes more sensitive or personal, additional authentications may be required
-- How to train our server to remember the client and offer personalized service without the trouble of authentication every time
+- How to train our staffs(server) to remember the client and offer personalized service without the trouble of authentication every time
 
-
+by Eric Mai
 
 ## Getting started
 
