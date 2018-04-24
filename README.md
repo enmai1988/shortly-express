@@ -1,6 +1,6 @@
 # Shortly-Express
 
-This is a URL shortening service similar to Bitly(partially finished). The goal is to allow registered users to have their private list of shortened urls while unregistered users are can still shorten urls freely without the private list.
+This is a URL shortening service similar to Bitly(partially finished). The goal is to allow registered users to have their private list of shortened urls while unregistered users can still shorten urls freely without the private list.
 
 
 
